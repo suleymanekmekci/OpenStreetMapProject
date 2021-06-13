@@ -4,6 +4,8 @@ import com.google.gson.Gson;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 
 public class TestPrefixSample {
@@ -23,11 +25,15 @@ public class TestPrefixSample {
             IO[] entries = mapper.readValue(new File("prefix_sample.json"), IO[].class);
             for (IO io : entries) {
                 List<Vertex> test = graph.tst.valuesWithPrefix(io.input);
-               if (!gson.toJson(test).equals(gson.toJson(io.output))) {
-                   System.out.println("Expected: '" + gson.toJson(io.output) + "'\nGot: '" + gson.toJson(test) + "'");
-                   System.out.println("For: '" + io.input + "'\n");
-                   TestUtils.fail();
-               }
+                test.sort(Comparator.comparing(Vertex::getName));
+                List<Vertex> output = Arrays.asList(gson.fromJson(gson.toJson(io.output), Vertex[].class));
+                output.sort(Comparator.comparing(Vertex::getName));
+
+                if (!test.equals(output)) {
+                    System.out.println("Expected: '" + gson.toJson(io.output) + "'\nGot: '" + gson.toJson(test) + "'");
+                    System.out.println("For: '" + io.input + "'\n");
+                    TestUtils.fail();
+                }
             }
             TestUtils.pass();
         } catch (IOException e) {
